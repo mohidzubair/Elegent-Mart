@@ -1,0 +1,185 @@
+// backend/seedProducts.js
+// Standalone script to seed products if collection empty.
+
+import dotenv from "dotenv";
+import mongoose from "mongoose";
+import Product from "./models/Product.js";
+
+dotenv.config();
+
+// Full products list inlined from frontend/public/database.json
+const productsList = [
+    { "id": 1, "name": "Fresh Apple", "image": "/Images/apple.png", "category": "Fruits & Vegetables", "unit": "1 Kg", "price": 320, "description": "Crisp, juicy apples packed with natural sweetness and vitamins — perfect for snacking or juicing.", "allowDecimal": true, "quantity_increase": 0.5 },
+    { "id": 2, "name": "Bananas", "image": "/Images/banana.jpg", "category": "Fruits & Vegetables", "unit": "Dozen", "price": 180, "description": "Fresh, ripe bananas rich in potassium and fiber — a healthy, energy-boosting snack.", "allowDecimal": true, "quantity_increase": 0.5 },
+    { "id": 3, "name": "Grapes", "image": "/Images/grapes.png", "category": "Fruits & Vegetables", "unit": "500g", "price": 220, "description": "Sweet and seedless grapes, perfect for snacking, desserts, or fruit salads.", "allowDecimal": true, "quantity_increase": 0.5 },
+    { "id": 4, "name": "Fresh Tomato", "image": "/Images/tomatoes.png", "category": "Fruits & Vegetables", "unit": "1 Kg", "price": 140, "description": "Juicy red tomatoes full of flavor — ideal for salads, cooking, and sauces.", "allowDecimal": true, "quantity_increase": 0.5 },
+    { "id": 5, "name": "Onions", "image": "/Images/onion.jpeg", "category": "Fruits & Vegetables", "unit": "1 Kg", "price": 130, "description": "Fresh onions with a rich, bold flavor — a kitchen essential for every meal.", "allowDecimal": true, "quantity_increase": 0.5 },
+    { "id": 6, "name": "Potatoes", "image": "/Images/potato.png", "category": "Fruits & Vegetables", "unit": "1 Kg", "price": 120, "description": "High-quality potatoes suitable for frying, boiling, or baking.", "allowDecimal": true, "quantity_increase": 0.5 },
+    { "id": 7, "name": "Carrots", "image": "/Images/carrots.jpg", "category": "Fruits & Vegetables", "unit": "500g", "price": 100, "description": "Crunchy, fresh carrots loaded with vitamin A — great for salads and juices.", "allowDecimal": true, "quantity_increase": 0.5 },
+    { "id": 8, "name": "National Red Chili Powder", "image": "/Images/national rd chilli.avif", "category": "Spices", "unit": "100g", "price": 80, "description": "Pure red chili powder to add a fiery touch and deep flavor to your dishes.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 9, "name": "Turmeric Powder", "image": "/Images/national tumeric powder.webp", "category": "Spices", "unit": "100g", "price": 70, "description": "Finely ground turmeric with rich color and earthy aroma — known for its health benefits.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 10, "name": "Black Pepper", "image": "/Images/black pepper.webp", "category": "Spices", "unit": "50g", "price": 90, "description": "Strong, aromatic black pepper that enhances the flavor of any meal.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 11, "name": "Coca-Cola", "image": "/Images/coca cola 1.5L.webp", "category": "Beverages", "unit": "1.5 L", "price": 180, "description": "The classic Coca-Cola taste — refreshing, fizzy, and perfect for every occasion.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 12, "name": "Fresh Milk", "image": "/Images/adams-milk.webp", "category": "Dairy & Eggs", "unit": "1 L", "price": 210, "description": "Pure, creamy milk full of protein and calcium — great for tea, coffee, or daily nutrition.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 13, "name": "Cheddar Cheese", "image": "/Images/cheese.png", "category": "Dairy & Eggs", "unit": "200g", "price": 350, "description": "Rich, creamy cheddar cheese with a sharp taste — perfect for sandwiches, burgers, or baking.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 14, "name": "Butter", "image": "/Images/butter.png", "category": "Dairy & Eggs", "unit": "100g", "price": 220, "description": "Smooth, golden butter made from fresh cream — ideal for spreading, cooking, and baking.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 15, "name": "Lay's Chips Classic", "image": "/Images/lays-classic.png", "category": "Snacks", "unit": "50g", "price": 80, "description": "Crispy Lay’s Classic chips with a light, salty crunch — a timeless snack favorite.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 84, "name": "Lay's Chips Yogurt and Herb", "image": "/Images/yogurt-and-herb-lays.webp", "category": "Snacks", "unit": "50g", "price": 80, "description": "Crispy Lay’s yogurt and herb chips with a light, salty crunch — a timeless snack favorite.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 16, "name": "Chocolate Cookies", "image": "/Images/cookies.png", "category": "Bakery", "unit": "Pack of 6", "price": 250, "description": "Delicious chocolate chip cookies baked to perfection — crunchy outside, soft inside.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 17, "name": "Frozen French Fries", "image": "/Images/french-fries.png", "category": "Frozen Foods", "unit": "1 Kg", "price": 400, "description": "Crispy frozen french fries ready to fry or bake — perfect for quick snacks and meals.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 18, "name": "Notebook (A4 Size)", "image": "/Images/notebook.png", "category": "Stationary", "unit": "1 piece", "price": 120, "description": "A4-size ruled notebook with smooth pages — great for school, college, or office use.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 19, "name": "Ballpoint Pen", "image": "/Images/pen.png", "category": "Stationary", "unit": "1 piece", "price": 50, "description": "Smooth-writing pen with durable ink — perfect for everyday writing.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 20, "name": "Dishwash Liquid", "image": "/Images/dishwash.png", "category": "Household", "unit": "500ml", "price": 180, "description": "Powerful dishwashing liquid that removes grease easily and leaves dishes sparkling clean.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 21, "name": "Laundry Detergent", "image": "/Images/detergent.png", "category": "Household", "unit": "1 Kg", "price": 350, "description": "Effective laundry detergent that removes tough stains while keeping clothes fresh and soft.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 22, "name": "Sunridge Super Fine Atta", "image": "/Images/sunridge-atta.png", "category": "Everyday Grocery", "unit": "5kg", "price": 775, "description": "Premium wheat flour for soft and fluffy rotis.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 23, "name": "Ghiza Maida", "image": "/Images/maida.png", "category": "Everyday Grocery", "unit": "1kg", "price": 178.5, "description": "Refined wheat flour perfect for baking and cooking.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 24, "name": "Falak Gram Flour (Besan)", "image": "/Images/besan.png", "category": "Everyday Grocery", "unit": "1kg", "price": 400, "description": "High-quality gram flour for pakoras and traditional dishes.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 25, "name": "Sunridge Fiber Fit Digestive Atta", "image": "/Images/digestive-atta.png", "category": "Everyday Grocery", "unit": "5kg", "price": 805, "description": "Fiber-rich atta for a healthy digestive system.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 26, "name": "Chana Daal", "image": "/Images/chana-daal.png", "category": "Everyday Grocery", "unit": "500g", "price": 145, "description": "Fresh split chickpeas ideal for traditional meals.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 27, "name": "Masoor Daal", "image": "/Images/masoor-daal.png", "category": "Everyday Grocery", "unit": "500g", "price": 140, "description": "Smooth and tasty red lentils, quick to cook and nutritious.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 28, "name": "Moong Daal", "image": "/Images/moong-daal.png", "category": "Everyday Grocery", "unit": "1kg", "price": 335, "description": "Premium quality moong daal with a fresh aroma.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 29, "name": "Black Chickpeas (Kala Chana)", "image": "/Images/kala-chana.png", "category": "Everyday Grocery", "unit": "500g", "price": 155, "description": "Protein-packed black chickpeas perfect for curries.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 30, "name": "White Chickpeas (Safed Chana)", "image": "/Images/white-chana.png", "category": "Everyday Grocery", "unit": "500g", "price": 145, "description": "High-quality white chickpeas for traditional chana recipes.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 31, "name": "Reem Blue Steam Rice", "image": "/Images/reem-blue-rice.png", "category": "Everyday Grocery", "unit": "1kg", "price": 442.8, "description": "Finely steamed rice with a rich aroma and soft texture.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 32, "name": "Falak Daily Rice", "image": "/Images/falak-daily-rice.png", "category": "Everyday Grocery", "unit": "1kg", "price": 283.5, "description": "Everyday rice perfect for home-cooked meals.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 33, "name": "Guard Ultimate Basmati Rice", "image": "/Images/guard-rice.png", "category": "Everyday Grocery", "unit": "5kg", "price": 2845, "description": "Long grain basmati rice with premium fragrance.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 34, "name": "Falak Premium Rice", "image": "/Images/falak-premium-rice.png", "category": "Everyday Grocery", "unit": "1kg", "price": 472.5, "description": "Top-quality aromatic basmati rice for special meals.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 35, "name": "Shan Refined Salt", "image": "/Images/shan-salt.png", "category": "Spices", "unit": "800g", "price": 80, "description": "Pure refined salt for everyday cooking.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 36, "name": "Falak Pink Salt", "image": "/Images/pink-salt.png", "category": "Spices", "unit": "800g", "price": 108, "description": "Natural Himalayan pink salt packed with minerals.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 37, "name": "Sugar (Cheeni)", "image": "/Images/sugar.png", "category": "Spices", "unit": "5kg", "price": 960, "description": "Premium quality sugar to sweeten your treats.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 38, "name": "Falak Jaggery (Desi Gur)", "image": "/Images/jaggery.png", "category": "Everyday Grocery", "unit": "500g", "price": 392, "description": "Natural jaggery with rich traditional sweetness.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 39, "name": "Heinz Beanz Tin", "image": "/Images/heinz-beans.png", "category": "Everyday Grocery", "unit": "400g", "price": 308, "description": "Classic Heinz beans with rich tomato sauce.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 40, "name": "Sun Gold White Mushrooms", "image": "/Images/mushrooms.png", "category": "Everyday Grocery", "unit": "400g", "price": 306, "description": "Ready-to-use canned mushrooms for pizza and pasta.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 41, "name": "Pickled Gherkins (Sliced)", "image": "/Images/gherkins.png", "category": "Everyday Grocery", "unit": "480g", "price": 773.5, "description": "Crispy sliced gherkins for burgers, salads, and snacks.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 42, "name": "Dettol Multi Purpose Floor Cleaner Floral", "image": "/Images/dettolfloorfloral.png", "category": "Household", "unit": "1800ml", "price": 2200, "description": "Effective floral scented floor cleaner for germ protection.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 43, "name": "Dettol Multi Purpose Floor Cleaner Aqua", "image": "/Images/dettolflooraqua.png", "category": "Household", "unit": "1000ml", "price": 1600, "description": "Powerful cleaning with refreshing aqua fragrance.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 44, "name": "Dettol Multi Purpose Floor Cleaner Citrus", "image": "/Images/dettolfloorcitrus.png", "category": "Household", "unit": "500ml", "price": 825, "description": "Kills germs and leaves a citrus fresh scent.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 45, "name": "Dettol Hand Wash Original Refill", "image": "/Images/dettolhandwashrefill.png", "category": "Household", "unit": "750ml", "price": 1050, "description": "Original Dettol liquid hand wash refill for everyday hygiene.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 46, "name": "Dettol Hand Wash Pump Soothe", "image": "/Images/dettol-handwashpumpsoothe.png", "category": "Household", "unit": "250ml", "price": 550, "description": "Moisturizing scented hand wash for soft skin.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 47, "name": "Dettol Hand Wash Original Refill", "image": "/Images/dettol-handwash-refill-small.png", "category": "Household", "unit": "375ml", "price": 565.50, "description": "Hand wash refill with Dettol antibacterial formula.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 48, "name": "Dettol Soap Soothe", "image": "/Images/dettol-soap-soothe.png", "category": "Household", "unit": "80g", "price": 123.50, "description": "Mild soap that helps protect from germs.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 49, "name": "Dettol Soap Cool", "image": "/Images/dettol-soap-cool.png", "category": "Household", "unit": "110g", "price": 142.50, "description": "Cooling soap with germ protection.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 50, "name": "Dettol Soap Skincare", "image": "/Images/dettol-soap-skincare.png", "category": "Household", "unit": "110g", "price": 135, "description": "Gentle skincare soap with antibacterial protection.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 51, "name": "Harpic Toilet Cleaner Citrus", "image": "/Images/harpic-citrus.png", "category": "Household", "unit": "900ml", "price": 1044, "description": "Powerful toilet cleaner with citrus fragrance.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 52, "name": "Harpic Toilet Cleaner Lavender", "image": "/Images/harpic-lavender.png", "category": "Household", "unit": "700ml", "price": 739.50, "description": "Deep cleaning toilet cleaner with lavender scent.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 53, "name": "Harpic Toilet Cleaner Original", "image": "/Images/harpic-original.png", "category": "Household", "unit": "700ml", "price": 826.50, "description": "Classic Harpic strong cleaning and germ kill.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 54, "name": "Harpic Bathroom Cleaner Floral", "image": "/Images/harpic-bathroom-floral.png", "category": "Household", "unit": "900ml", "price": 912.17, "description": "Removes tough stains with a floral scent.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 55, "name": "Harpic Bathroom Cleaner Lemon", "image": "/Images/harpic-bathroom-lemon.png", "category": "Household", "unit": "450ml", "price": 534.75, "description": "Powerful bathroom cleaner with lemon fragrance.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 56, "name": "Veet Pure Hair Removal Cream Sensitive Skin", "image": "/Images/veet-sensitive.png", "category": "Household", "unit": "200g", "price": 1520, "description": "Smooth hair removal solution for sensitive skin.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 57, "name": "Veet Hair Removal Lotion Normal Skin", "image": "/Images/veet-normal.png", "category": "Household", "unit": "80g", "price": 410.85, "description": "Fast and gentle hair removal lotion for normal skin.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 58, "name": "Veet Pure Hair Removal Cream Dry Skin", "image": "/Images/veet-dry.png", "category": "Household", "unit": "100g", "price": 833, "description": "Moisturizing cream for dry skin hair removal.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 59, "name": "Veet Face Wax Strips Normal Skin", "image": "/Images/veet-wax-strips.png", "category": "Household", "unit": "8 Pieces", "price": 373.50, "description": "Easy face waxing strips designed for normal skin.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 60, "name": "Mortein Xtra Power Coils", "image": "/Images/mortein-coils.png", "category": "Household", "unit": "10 Pieces", "price": 180, "description": "Mosquito protection with long-lasting power.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 61, "name": "Mortein Refill Odourless", "image": "/Images/mortein-refill.png", "category": "Household", "unit": "120 Nights", "price": 820, "description": "Odourless mosquito repellent refill.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 62, "name": "Mortein Flying Insect Killer Spray", "image": "/Images/mortein-spray-flying.png", "category": "Household", "unit": "550ml", "price": 957.60, "description": "Spray that eliminates flying insects fast.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 63, "name": "Mortein All Insect Killer Spray", "image": "/Images/mortein-spray-all.png", "category": "Household", "unit": "375ml", "price": 722.50, "description": "Kills all common household insects.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 64, "name": "Mortein Refill Fragrant", "image": "/Images/mortein-refill-fragrant.png", "category": "Household", "unit": "180 Nights", "price": 1107, "description": "Fragrant mosquito repellent refill.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 65, "name": "Coca Cola Zero Sugar Can", "image": "/Images/cocacola-zero-250ml.png", "category": "Beverages", "unit": "250ml", "price": 102, "description": "Zero sugar cola with original taste.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 66, "name": "Coca Cola Bottle", "image": "/Images/cocacola-500ml.png", "category": "Beverages", "unit": "500ml", "price": 120, "description": "Classic Coca Cola soft drink.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 67, "name": "Coca Cola Bottle", "image": "/Images/cocacola-1l.png", "category": "Beverages", "unit": "1L", "price": 150, "description": "Refreshing cola in family bottle size.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 68, "name": "Coca Cola Bottle", "image": "/Images/cocacola-1_5l.png", "category": "Beverages", "unit": "1.5L", "price": 190, "description": "Perfect for sharing with friends and family.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 69, "name": "Pepsi Can", "image": "/Images/pepsi-can.png", "category": "Beverages", "unit": "250ml", "price": 102, "description": "Classic Pepsi taste in a convenient can.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 70, "name": "Pepsi Bottle", "image": "/Images/pepsi-500ml.png", "category": "Beverages", "unit": "500ml", "price": 120, "description": "Refreshing Pepsi cola drink in a 500ml bottle.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 71, "name": "Pepsi Bottle", "image": "/Images/pepsi-1l.png", "category": "Beverages", "unit": "1L", "price": 150, "description": "Family size Pepsi drink with classic cola taste.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 72, "name": "Pepsi Bottle", "image": "/Images/pepsi-1_5l.png", "category": "Beverages", "unit": "1.5L", "price": 190, "description": "Perfect Pepsi cola for sharing.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 73, "name": "7 Up Can", "image": "/Images/7up-can.png", "category": "Beverages", "unit": "250ml", "price": 102, "description": "Crisp lemon-lime soda in a can.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 74, "name": "7 Up Bottle", "image": "/Images/7up-500ml.png", "category": "Beverages", "unit": "500ml", "price": 120, "description": "Refreshing lemon-lime drink.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 75, "name": "7 Up Bottle", "image": "/Images/7up-1l.png", "category": "Beverages", "unit": "1L", "price": 150, "description": "Family-size lemon-lime soda.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 76, "name": "7 Up Bottle", "image": "/Images/7up-1_5l.png", "category": "Beverages", "unit": "1.5L", "price": 190, "description": "Perfect for gatherings.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 77, "name": "Mirinda Can", "image": "/Images/mirinda-can.png", "category": "Beverages", "unit": "250ml", "price": 102, "description": "Orange-flavored fizzy soda in a can.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 78, "name": "Mirinda Bottle", "image": "/Images/mirinda-500ml.png", "category": "Beverages", "unit": "500ml", "price": 120, "description": "Refreshing orange soda drink.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 79, "name": "Mirinda Bottle", "image": "/Images/mirinda-1l.png", "category": "Beverages", "unit": "1L", "price": 150, "description": "Family-size orange soda.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 80, "name": "Mirinda Bottle", "image": "/Images/mirinda-1_5l.png", "category": "Beverages", "unit": "1.5L", "price": 190, "description": "Orange soda for sharing.", "allowDecimal": false, "quantity_increase": 1 },
+    { "id": 81, "name": "Fresh Mango", "image": "/Images/mango.png", "category": "Fruits & Vegetables", "unit": "1 Kg", "price": 550, "description": "Sweet, juicy mangoes in season — perfect for desserts and juices.", "allowDecimal": true, "quantity_increase": 0.5 },
+    { "id": 82, "name": "Strawberries", "image": "/Images/strawberries.png", "category": "Fruits & Vegetables", "unit": "250g", "price": 350, "description": "Fresh, red strawberries — ideal for snacking and desserts.", "allowDecimal": true, "quantity_increase": 0.5 },
+    { "id": 83, "name": "Pineapple", "image": "/Images/pineapple.png", "category": "Fruits & Vegetables", "unit": "1 Pc", "price": 420, "description": "Sweet and tangy pineapple — perfect for fresh fruit or smoothies.", "allowDecimal": true, "quantity_increase": 0.5 },
+    { "id": 85, "name": "Ginger", "image": "/Images/ginger.png", "category": "Fruits & Vegetables", "unit": "100g", "price": 90, "description": "Fresh ginger with strong aroma — great for cooking and tea.", "allowDecimal": true, "quantity_increase": 0.5 }
+];
+
+async function run() {
+    const uri = process.env.MONGODB_URI || process.env.MONGO_URI || "mongodb://127.0.0.1:27017";
+    const dbName = process.env.MONGODB_DB || "elegent-mart";
+
+    try {
+        await mongoose.connect(uri, { dbName, serverSelectionTimeoutMS: 8000 });
+        const hostInfo = (() => {
+            try {
+                const u = new URL(uri.replace("mongodb+srv://", "http://").replace("mongodb://", "http://"));
+                return `${u.hostname}/${dbName}`;
+            } catch { return `[redacted]/${dbName}`; }
+        })();
+        console.log(`Connected to MongoDB (${hostInfo}) for seeding...`);
+
+        // Use upsert per product so stock/tags are written and existing entries are updated
+        function defaultStockForCategory(cat) {
+            switch ((cat || '').toLowerCase()) {
+                case 'fruits & vegetables': return 200;
+                case 'fruits': return 200;
+                case 'spices': return 500;
+                case 'beverages': return 400;
+                case 'dairy & eggs': return 150;
+                case 'snacks': return 250;
+                case 'bakery': return 100;
+                case 'frozen foods': return 120;
+                case 'stationary': return 300;
+                case 'household': return 200;
+                case 'everyday grocery': return 400;
+                default: return 100;
+            }
+        }
+
+        function buildTags(p) {
+            const tags = new Set();
+            if (p.tags && Array.isArray(p.tags)) p.tags.forEach(t => tags.add(String(t).toLowerCase()));
+            if (p.category) {
+                String(p.category).split(/[^a-zA-Z0-9]+/).filter(Boolean).forEach(t => tags.add(t.toLowerCase()));
+            }
+            if (p.name) {
+                const words = String(p.name).toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w && w.length > 2);
+                if (words.length) tags.add(words[0]);
+                if (words.length > 1) tags.add(words[1]);
+            }
+            return Array.from(tags).slice(0, 6);
+        }
+
+        const ops = productsList.map(p => {
+            const doc = {
+                name: p.name,
+                image: p.image || "/Images/placeholder.png",
+                category: p.category || "Uncategorized",
+                unit: p.unit || "1 pc",
+                price: Number(p.price) || 0,
+                description: p.description || "",
+                allowDecimal: !!p.allowDecimal,
+                quantity_increase: p.quantity_increase != null ? Number(p.quantity_increase) : 1,
+                stock: p.stock != null ? Number(p.stock) : defaultStockForCategory(p.category),
+                tags: buildTags(p),
+            };
+            return {
+                updateOne: {
+                    filter: { name: doc.name },
+                    update: { $set: doc },
+                    upsert: true,
+                }
+            };
+        });
+
+        if (ops.length) {
+            const result = await Product.bulkWrite(ops, { ordered: false });
+            console.log(`✅ Products upserted. Matched=${result.matchedCount || 0} Upserted=${result.upsertedCount || 0} Modified=${result.modifiedCount || 0}`);
+        } else {
+            console.log('ℹ️ No products to upsert.');
+        }
+    } catch (err) {
+        console.error("❌ Seeding failed:", err.message);
+        process.exitCode = 1;
+    } finally {
+        await mongoose.disconnect();
+        console.log("Disconnected from MongoDB.");
+    }
+}
+
+run().catch((e) => {
+    console.error(e);
+    process.exit(1);
+});

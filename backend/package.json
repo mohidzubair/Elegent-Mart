@@ -1,5 +1,33 @@
 {
+  "name": "elegent-mart-backend",
+  "version": "1.0.0",
+  "description": "Elegant Mart backend API",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "seed:products": "node seedProducts.js",
+    "seed:users": "node seedUsers.js",
+    "seed:orders": "node seedOrders.js",
+    "seed:transactions": "node seedTransactions.js",
+    "seed:notifications": "node seedNotifications.js",
+    "seed:analytics": "node seedAnalytics.js",
+    "seed:categories": "node seedCategories.js",
+    "seed:all": "npm run seed:products & npm run seed:categories & npm run seed:users & npm run seed:orders & npm run seed:transactions & npm run seed:notifications & npm run seed:analytics"
+  },
   "dependencies": {
-    "express": "^5.1.0"
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^9.0.0",
+    "morgan": "^1.10.1",
+    "multer": "^2.0.2",
+    "nodemailer": "^7.0.11",
+    "nodemon": "^3.1.11"
   }
 }

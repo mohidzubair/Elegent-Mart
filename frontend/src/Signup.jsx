@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "./context/AuthContext";
+import { apiFetch } from "./api";
 
 export default function Signup() {
     const navigate = useNavigate();
@@ -35,10 +36,9 @@ export default function Signup() {
 
         setSubmitting(true);
         try {
-            const res = await fetch('/api/auth/signup', {
+            const res = await apiFetch('/api/auth/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'include', // Important: include cookies
                 body: JSON.stringify({ name: form.name, email: form.email, password: form.password, phone: form.phone })
             });
 

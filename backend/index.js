@@ -22,26 +22,47 @@ const app = express();
 
 // CORS configuration for cookie-based auth
 const allowedOrigins = [
-  process.env.FRONTEND_URL // prod frontend (if set)
+  process.env.FRONTEND_URL, // prod frontend (if set)
+  'https://elegent-mart.vercel.app', // Add your Vercel domain
+  'https://elegent-mart-git-main-mohidzubairs-projects.vercel.app',
+  'https://elegantsuperstore.com',
+  'https://www.elegantsuperstore.com', // With www
+  'http://elegantsuperstore.com',
+  'http://www.elegantsuperstore.com',
 ].filter(Boolean);
 
 app.use(cors({
   origin: function (origin, callback) {
+    console.log('[CORS] Request from origin:', origin);
+    
     // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      console.log('[CORS] ✅ Allowing request with no origin');
+      return callback(null, true);
+    }
 
     // Allow any localhost during development (covers dynamic vite ports)
     if (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
+      console.log('[CORS] ✅ Allowing localhost origin');
+      return callback(null, true);
+    }
+
+    // Allow any vercel.app domain
+    if (origin.includes('.vercel.app')) {
+      console.log('[CORS] ✅ Allowing Vercel domain');
       return callback(null, true);
     }
 
     if (allowedOrigins.includes(origin)) {
+      console.log('[CORS] ✅ Allowing whitelisted origin');
       return callback(null, true);
     }
 
+    console.log('[CORS] ❌ Rejecting origin:', origin);
     callback(new Error("Not allowed by CORS"));
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   credentials: true  // Allow cookies
 }));
 

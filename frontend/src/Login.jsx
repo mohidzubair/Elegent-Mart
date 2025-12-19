@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
+import { apiFetch } from "./api";
 
 export default function Login() {
     const [formData, setFormData] = useState({
@@ -59,10 +60,9 @@ export default function Login() {
         setError(null);
         setSubmitting(true);
         try {
-            const res = await fetch('/api/auth/login', {
+            const res = await apiFetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'include', // Important: include cookies
                 body: JSON.stringify({ email: formData.email, password: formData.password })
             });
 

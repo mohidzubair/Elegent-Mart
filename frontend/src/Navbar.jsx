@@ -159,11 +159,13 @@ function Navbar() {
                 <div className="flex justify-between items-center px-4 py-3">
                     {/* Left: Logo + Deliver To */}
                     <div className="flex items-center space-x-2">
-                        <img
-                            src="/Images/transparent-mart-logo.png"
-                            alt="Elegant Mart Logo"
-                            className="h-10 md:h-12 w-auto"
-                        />
+                        <Link to="/" aria-label="Home">
+                            <img
+                                src="/Images/transparent-mart-logo.png"
+                                alt="Elegant Mart Logo"
+                                className="h-10 md:h-12 w-auto"
+                            />
+                        </Link>
 
                         <button
                             onClick={() => setDeliverOpen(true)}
@@ -704,11 +706,13 @@ function Navbar() {
                             </button>
 
                             <div className="flex justify-center mb-4">
-                                <img
-                                    src="/Images/transparent-mart-logo.png"
-                                    alt="Elegant Mart Logo"
-                                    className="h-10 md:h-12 w-auto"
-                                />
+                                <Link to="/" aria-label="Home">
+                                    <img
+                                        src="/Images/transparent-mart-logo.png"
+                                        alt="Elegant Mart Logo"
+                                        className="h-10 md:h-12 w-auto"
+                                    />
+                                </Link>
                             </div>
 
                             <h2 className="text-lg font-bold mb-3 text-gray-800 text-center">

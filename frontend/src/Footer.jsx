@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from 'react-router-dom';
 import martLogo from "../src/assets/Images/martlogo.jpg";
 
 
@@ -11,11 +12,13 @@ function Footer() {
 
                     {/* Logo Section */}
                     <div className="flex flex-col items-center md:items-start text-center md:text-left">
-                        <img
-                            src={martLogo}
-                            alt="Logo"
-                            className="w-32 md:w-44 mb-4 drop-shadow-lg pop-out"
-                        />
+                        <Link to="/" aria-label="Home">
+                            <img
+                                src={martLogo}
+                                alt="Logo"
+                                className="w-32 md:w-44 mb-4 drop-shadow-lg pop-out"
+                            />
+                        </Link>
                         <p className="text-sm opacity-80">Your trusted shopping partner</p>
                     </div>
 

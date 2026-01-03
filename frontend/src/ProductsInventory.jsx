@@ -47,6 +47,9 @@ const ProductsInventory = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
+    const [imageUploading, setImageUploading] = useState(false);
+    const [categoryImageUploading, setCategoryImageUploading] = useState(false);
+    const [categoryBannerUploading, setCategoryBannerUploading] = useState(false);
 
     // Fetch data on component mount
     useEffect(() => {
@@ -81,6 +84,43 @@ const ProductsInventory = () => {
                 customersCount: 0,
                 productsCount: 0
             });
+        }
+    };
+
+    // Upload single image for category (image or banner)
+    const uploadCategoryImage = async (file, field) => {
+        if (!file) return;
+        try {
+            if (field === 'image') setCategoryImageUploading(true);
+            if (field === 'banner') setCategoryBannerUploading(true);
+
+            const form = new FormData();
+            form.append('image', file);
+
+            const res = await apiFetch('/api/upload/image', {
+                method: 'POST',
+                body: form
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({ message: 'Upload failed' }));
+                setError(err.message || 'Image upload failed');
+                return;
+            }
+
+            const data = await res.json();
+            if (data && data.path) {
+                if (field === 'image') setCategoryForm(prev => ({ ...prev, image: data.path }));
+                if (field === 'banner') setCategoryForm(prev => ({ ...prev, banner: data.path }));
+            } else {
+                setError('Upload succeeded but no path returned');
+            }
+        } catch (err) {
+            console.error('Category image upload error', err);
+            setError('Network error during image upload');
+        } finally {
+            if (field === 'image') setCategoryImageUploading(false);
+            if (field === 'banner') setCategoryBannerUploading(false);
         }
     };
 
@@ -145,6 +185,39 @@ const ProductsInventory = () => {
         setSuccess(null);
     };
 
+    // Upload image to backend and set productForm.image to returned path
+    const uploadImage = async (file) => {
+        if (!file) return;
+        try {
+            setImageUploading(true);
+            const form = new FormData();
+            form.append('image', file);
+
+            const res = await apiFetch('/api/upload/image', {
+                method: 'POST',
+                body: form
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({ message: 'Upload failed' }));
+                setError(err.message || 'Image upload failed');
+                return;
+            }
+
+            const data = await res.json();
+            if (data && data.path) {
+                setProductForm(prev => ({ ...prev, image: data.path }));
+            } else {
+                setError('Upload succeeded but no path returned');
+            }
+        } catch (err) {
+            console.error('Image upload error', err);
+            setError('Network error during image upload');
+        } finally {
+            setImageUploading(false);
+        }
+    };
+
     const handleLogout = async () => {
         await logout();
         navigate('/login');
@@ -163,10 +236,9 @@ const ProductsInventory = () => {
                 : '/api/categories';
             const method = categoryForm._id ? 'PUT' : 'POST';
 
-            const res = await fetch(url, {
+            const res = await apiFetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
                 body: JSON.stringify({
                     name: categoryForm.name,
                     image: categoryForm.image,
@@ -205,10 +277,7 @@ const ProductsInventory = () => {
         if (!confirm('Are you sure you want to delete this category?')) return;
 
         try {
-            const res = await fetch(`/api/categories/${id}`, {
-                method: 'DELETE',
-                credentials: 'include'
-            });
+            const res = await apiFetch(`/api/categories/${id}`, { method: 'DELETE' });
 
             if (res.ok) {
                 setSuccess('Category deleted!');
@@ -252,10 +321,9 @@ const ProductsInventory = () => {
             console.log('Submitting product:', productData);
             console.log('URL:', url, 'Method:', method);
 
-            const res = await fetch(url, {
+            const res = await apiFetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
                 body: JSON.stringify(productData)
             });
 
@@ -309,10 +377,7 @@ const ProductsInventory = () => {
         if (!confirm('Are you sure you want to delete this product?')) return;
 
         try {
-            const res = await fetch(`/api/products/${id}`, {
-                method: 'DELETE',
-                credentials: 'include'
-            });
+            const res = await apiFetch(`/api/products/${id}`, { method: 'DELETE' });
 
             if (res.ok) {
                 setSuccess('Product deleted!');
@@ -451,33 +516,49 @@ const ProductsInventory = () => {
 
                                 {/* Image */}
                                 <label className="block text-sm font-semibold">Category Image</label>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="w-full px-4 py-2 border rounded-lg"
-                                    onChange={(e) => {
-                                        const file = e.target.files[0];
-                                        if (file) {
-                                            setCategoryForm({ ...categoryForm, image: `/Images/${file.name}` });
-                                        }
-                                    }}
-                                    required={!categoryForm._id}
-                                />
+                                <div className="flex items-center space-x-3">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="w-full px-4 py-2 border rounded-lg"
+                                        onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            if (file) {
+                                                uploadCategoryImage(file, 'image');
+                                            }
+                                        }}
+                                        required={!categoryForm._id}
+                                    />
+                                    {categoryImageUploading && (
+                                        <span className="text-sm text-gray-500">Uploading...</span>
+                                    )}
+                                    {categoryForm.image && !categoryImageUploading && (
+                                        <img src={categoryForm.image} alt="preview" className="w-16 h-16 object-cover rounded" />
+                                    )}
+                                </div>
 
                                 {/* Banner */}
                                 <label className="block text-sm font-semibold">Banner Image</label>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="w-full px-4 py-2 border rounded-lg"
-                                    onChange={(e) => {
-                                        const file = e.target.files[0];
-                                        if (file) {
-                                            setCategoryForm({ ...categoryForm, banner: `/Images/${file.name}` });
-                                        }
-                                    }}
-                                    required={!categoryForm._id}
-                                />
+                                <div className="flex items-center space-x-3">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="w-full px-4 py-2 border rounded-lg"
+                                        onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            if (file) {
+                                                uploadCategoryImage(file, 'banner');
+                                            }
+                                        }}
+                                        required={!categoryForm._id}
+                                    />
+                                    {categoryBannerUploading && (
+                                        <span className="text-sm text-gray-500">Uploading...</span>
+                                    )}
+                                    {categoryForm.banner && !categoryBannerUploading && (
+                                        <img src={categoryForm.banner} alt="preview" className="w-32 h-12 object-cover rounded" />
+                                    )}
+                                </div>
 
                                 {/* Buttons */}
                                 <div className="flex space-x-3">
@@ -603,18 +684,27 @@ const ProductsInventory = () => {
 
                                 {/* Image */}
                                 <label className="block text-sm font-semibold">Product Image</label>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="w-full px-4 py-2 border rounded-lg"
-                                    onChange={(e) => {
-                                        const file = e.target.files[0];
-                                        if (file) {
-                                            setProductForm({ ...productForm, image: `/Images/${file.name}` });
-                                        }
-                                    }}
-                                    required={!productForm._id}
-                                />
+                                <div className="flex items-center space-x-3">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="w-full px-4 py-2 border rounded-lg"
+                                        onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            if (file) {
+                                                // Upload immediately and set returned path
+                                                uploadImage(file);
+                                            }
+                                        }}
+                                        required={!productForm._id}
+                                    />
+                                    {imageUploading && (
+                                        <span className="text-sm text-gray-500">Uploading...</span>
+                                    )}
+                                    {productForm.image && !imageUploading && (
+                                        <img src={productForm.image} alt="preview" className="w-16 h-16 object-cover rounded" />
+                                    )}
+                                </div>
 
                                 {/* Unit */}
                                 <input

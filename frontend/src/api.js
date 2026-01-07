@@ -1,4 +1,5 @@
 export const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+import { increment, decrement } from './loadingManager';
 
 // Small fetch wrapper used across the app. Defaults:
 // - credentials: 'include' so cookie-based auth (httpOnly token) works in development
@@ -24,5 +25,14 @@ export async function apiFetch(path, opts = {}) {
         }
     };
 
-    return fetch(url, merged);
+    // Show global loading overlay for duration of the fetch. Uses a counter so overlapping
+    // requests are handled correctly.
+    try {
+        increment();
+        const res = await fetch(url, merged);
+        return res;
+    } finally {
+        // ensure we decrement even on errors
+        decrement();
+    }
 }

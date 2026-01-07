@@ -5,15 +5,15 @@ import App from './App.jsx'
 import { BrowserRouter } from 'react-router-dom'
 import { CartProvider } from './context/CartContext'
 import { WishlistProvider } from './context/WishlistContext';
+import LoadingOverlay from './components/LoadingOverlay';
 
 createRoot(document.getElementById('root')).render(
-  
-    <BrowserRouter>
-      <WishlistProvider>
-        <CartProvider>
-          <App />
-        </CartProvider>
-      </WishlistProvider>
-    </BrowserRouter>
-  
+  <BrowserRouter>
+    <WishlistProvider>
+      <CartProvider>
+        <App />
+      </CartProvider>
+      <LoadingOverlay />
+    </WishlistProvider>
+  </BrowserRouter>
 )
